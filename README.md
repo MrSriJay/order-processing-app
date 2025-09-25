@@ -32,7 +32,7 @@ The diagram below illustrates the end-to-end workflow of the Order Processing Ap
 It shows how orders are imported, validated, and processed through stock reservation and payment simulation.
 It also highlights how notifications and KPIs/leaderboards are updated on success, how the system handles failures (payment or stock issues), and how the refund process is managed separately to ensure accurate financial tracking.
 
-![Alt text](public\order_processing_flow.png)
+![Alt text](https://github.com/MrSriJay/order-processing-app/blob/1b58a4b3d526baff0f129dda8cf2b938a7a6b7f0/public/order_processing_flow.png)
 
 
 ---
@@ -178,14 +178,14 @@ php artisan migrate --seed
     - **Purpose**: Renders the KPI dashboard view (`kpi-dashboard.blade.php`), fetching data from `/api/kpis` to display KPIs and leaderboard.
     - **Implementation**: Web route in `routes/web.php` returning `kpi-dashboard` view.
     
-![Alt text](public\kpi-dashboard.png)
+![Alt text](https://github.com/MrSriJay/order-processing-app/blob/1b58a4b3d526baff0f129dda8cf2b938a7a6b7f0/public/kpi-dashboard.png)
 
   ### 3. Horizon Dashboard
     - **Route**: `GET /horizon`
     - **Purpose**: Monitors Horizon queues, showing job status (`ProcessRefund`, `ProcessOrder`), metrics, and monitoring.
     - **Implementation**: Provided by Laravel Horizon, configured in `config/horizon.php`.
 
-![Alt text](public\horizon-dashboard.png)
+![Alt text](https://github.com/MrSriJay/order-processing-app/blob/1b58a4b3d526baff0f129dda8cf2b938a7a6b7f0/public/horizon-dashboard.png)
 
 ---
 
