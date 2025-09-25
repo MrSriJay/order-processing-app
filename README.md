@@ -1,61 +1,228 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Order Processing App
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel-based application for importing, processing, and managing orders from CSV files. It supports stock management, notifications, refunds, KPIs, and leaderboards. Redis is used for caching and queues, and Laravel Horizon for queue monitoring.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Task
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Task 1: Order Import and Processing
+- Import orders from a CSV using `php artisan orders:import orders.csv`.
+- Asynchronous order processing:
+  - Reserve stock
+  - Simulate payment (50% failure rate for testing)
+  - Finalize or rollback
+  - Update KPIs: revenue, order count, average order value
+  - Maintain customer leaderboard in Redis
+- Laravel Horizon monitors queues; Supervisor ensures persistent queue workers.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Task 2: Notifications
+- Sends queued notifications (logged to `storage/logs/laravel.log`) for successful or failed orders.
+- Stores notification history in the `notifications` table.
 
-## Learning Laravel
+### Task 3: Refunds
+- Handles partial or full refunds using `php artisan orders:refund {order_id} {amount?}`.
+- Processes refunds asynchronously, updates KPIs/leaderboard, and ensures idempotency using `refund_id`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Flow Diagram
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The diagram below illustrates the end-to-end workflow of the Order Processing Application.
+It shows how orders are imported, validated, and processed through stock reservation and payment simulation.
+It also highlights how notifications and KPIs/leaderboards are updated on success, how the system handles failures (payment or stock issues), and how the refund process is managed separately to ensure accurate financial tracking.
 
-## Laravel Sponsors
+![Alt text](public\order_processing_flow.png)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-### Premium Partners
+---
+## Prerequisites
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- **OS:** Windows 11 with WSL (Ubuntu recommended for Redis and Supervisor)
+- **PHP:** 8.2+ (thread-safe, with SQLite and Redis extensions)
+- **Composer:** Latest version
+- **Redis:** Installed via WSL (`sudo apt install redis-server`) or Windows MSI
+- **SQLite:** Built into PHP
+- **DB Browser for SQLite:** Optional
+- **Git:** For cloning/managing repository
 
-## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Installation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 1. Clone the Laravel Project
+```bash
+git clone https://github.com/MrSriJay/order-processing-app.git
+cd order-processing-app
+```
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 2. Install Redis, Supervisor and Horizon
 
-## License
+#### WSL (Windows Subsystem for Linux):
+WSL allows you to run a Linux environment directly on Windows without using a virtual machine. It provides a Linux terminal and supports Linux tools, making it ideal for running services like Redis, Supervisor, and Laravel Horizon on Windows.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+```bash
+# Update packages
+sudo apt update
+
+# Install Redis
+sudo apt install redis-server
+sudo service redis-server start
+redis-cli ping  # Should return PONG
+
+# Install Supervisor
+sudo apt install supervisor
+
+# Install Laravel Horizon
+composer require laravel/horizon predis/predis
+php artisan horizon:install
+
+
+# Additional
+php artisan config:clear
+php artisan horizon &
+php artisan horizon:status
+redis-cli flushdb
+
+```
+
+### 3. Install PHP dependencies & setup
+
+Run these commands from the project root. On Windows it's recommended to use WSL (Ubuntu) for Redis/Supervisor-related steps; the commands below are POSIX/bash-friendly.
+
+##### 3.1 Edit .env file:
+```bash
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite #Change the path to your sqlite file
+
+QUEUE_CONNECTION=redis  # We'll set this later; start with 'sync' for testing
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=log  # For email notifications (logs to storage/logs/laravel.log); change to 'smtp' for real emails
+
+```
+##### 3.2 Install PHP and Database Migrations
+
+```bash
+composer install
+php artisan key:generate
+php artisan migrate --seed
+```
+
+### 4. Run the Project
+
+1. **Start Redis**  
+   Ensure Redis is running on your machine. You can start it with:
+
+   ```bash
+      redis-server
+   ```
+   
+2. **Run Server**  
+   To start the Laravel development server, run:
+    ```bash
+       php artisan serve
+    ```  
+3. **Run Queue Worker**  
+   Start the Laravel queue worker to process queued jobs:
+    ```bash
+       php artisan queue:work redis
+    ```  
+
+4. **Import CSV**  
+   TTo import orders from a CSV file, run (CSV file stored in project root):
+    ```bash
+       php artisan orders:import orders.csv
+    ```  
+
+5. **View KPIs**  
+   To view the KPIs (Key Performance Indicators), run:
+    ```bash
+       php artisan orders:kpis
+    ```  
+
+6. **Refund Orders**  
+   To run the refund process, run:
+    ```bash
+       php artisan orders:refund {order_id} {amount}
+    ```  
+---
+
+##  API Endpoints
+
+  ### 1. KPI API Endpoint
+    - **Route**: `GET /api/kpis`
+    - **Purpose**: Returns KPI metrics (total revenue, order count, average order value) and customer leaderboard from Redis (`kpis:YYYY-MM-DD`, `leaderboard:customers`) or database fallback.
+    - **Response**:
+      ```json
+      {
+        "kpis": {
+          "total_revenue": "19792.00",
+          "order_count": 9,
+          "average_order_value": "2199.11"
+        },
+        "leaderboard": [
+          {"name": "Jane Doe", "email": "jane@example.com", "total": "7500.00"},
+          ...
+        ]
+      }
+      ```
+
+  ### 2. KPI Dashboard
+    - **Route**: `GET /kpi-dashboard`
+    - **Purpose**: Renders the KPI dashboard view (`kpi-dashboard.blade.php`), fetching data from `/api/kpis` to display KPIs and leaderboard.
+    - **Implementation**: Web route in `routes/web.php` returning `kpi-dashboard` view.
+    
+![Alt text](public\kpi-dashboard.png)
+
+  ### 3. Horizon Dashboard
+    - **Route**: `GET /horizon`
+    - **Purpose**: Monitors Horizon queues, showing job status (`ProcessRefund`, `ProcessOrder`), metrics, and monitoring.
+    - **Implementation**: Provided by Laravel Horizon, configured in `config/horizon.php`.
+
+![Alt text](public\horizon-dashboard.png)
+
+---
+
+## Notifications
+
+The application uses the `SendOrderNotification` job to notify users of order status changes (e.g., completed, refunded, failed).
+
+- **Process**:
+  - Dispatched by `ProcessOrder` and `ProcessRefund` jobs via Laravel Horizon.
+  - Logs notification details to `storage/logs/ordersNotificationMessages.log`.
+  - Example log entry:
+    ```
+    [2025-09-25 06:49:45] local.INFO: Sending notification for Order ID: 1, status: refunded
+    ```
+
+- **Configuration**:
+  - Custom log channel in `config/logging.php`:
+    ```php
+    'channels' => [
+        'orders' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/ordersNotificationMessages.log'),
+            'level' => 'info',
+        ],
+    ]
+    ```
+  - Job logs via:
+    ```php
+    \Log::channel('orders')->info("Sending notification for Order ID: {$order->id}, status: {$status}");
+    ```
+
+- **Verify**:
+  - Check logs:
+    ```bash
+    cat storage/logs/ordersNotificationMessages.log
+    ```
+  - Test:
+    ```bash
+    php artisan orders:refund 1
+    ```

@@ -31,7 +31,7 @@
                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                    <div class="kpi-card bg-white rounded-lg shadow-lg p-6 text-center">
                        <h2 class="text-xl font-semibold text-gray-700">Total Revenue</h2>
-                       <p id="total-revenue" class="text-2xl font-bold text-blue-600">$0.00</p>
+                       <p id="total-revenue" class="text-2xl font-bold text-blue-600">LKR 0.00</p>
                    </div>
                    <div class="kpi-card bg-white rounded-lg shadow-lg p-6 text-center">
                        <h2 class="text-xl font-semibold text-gray-700">Total Orders</h2>
@@ -39,7 +39,7 @@
                    </div>
                    <div class="kpi-card bg-white rounded-lg shadow-lg p-6 text-center">
                        <h2 class="text-xl font-semibold text-gray-700">Average Order Value</h2>
-                       <p id="average-order-value" class="text-2xl font-bold text-red-600">$0.00</p>
+                       <p id="average-order-value" class="text-2xl font-bold text-red-600">LKR 0.00</p>
                    </div>
                </div>
 
@@ -76,9 +76,9 @@
                        console.log('API Response:', data); 
 
                        // Update KPI cards
-                       document.getElementById('total-revenue').textContent = `$${data.kpis.total_revenue}`;
+                       document.getElementById('total-revenue').textContent = `LKR ${data.kpis.total_revenue}`;
                        document.getElementById('order-count').textContent = data.kpis.order_count;
-                       document.getElementById('average-order-value').textContent = `$${data.kpis.average_order_value}`;
+                       document.getElementById('average-order-value').textContent = `LKR ${data.kpis.average_order_value}`;
 
                        // Update leaderboard table
                        const leaderboardTable = document.getElementById('leaderboard-table');
@@ -95,7 +95,7 @@
                                    <td class="py-2 px-4">${index + 1}</td>
                                    <td class="py-2 px-4">${customer.name || 'Unknown'}</td>
                                    <td class="py-2 px-4">${customer.email || 'N/A'}</td>
-                                   <td class="py-2 px-4">$${customer.total}</td>
+                                   <td class="py-2 px-4">LKR ${customer.total}</td>
                                `;
                                leaderboardTable.appendChild(row);
                            });
