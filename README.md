@@ -111,7 +111,7 @@ MAIL_MAILER=log  # For email notifications (logs to storage/logs/laravel.log); c
 ```bash
 composer install
 php artisan key:generate
-php artisan migrate --seed
+php artisan migrate:fresh --seed
 ```
 
 ### 4. Run the Project
