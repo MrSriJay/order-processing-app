@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Jobs\ProcessRefund;
+use App\Models\Order;
 
 class RefundOrder extends Command
 {
@@ -25,7 +26,7 @@ class RefundOrder extends Command
      */
     public function handle()
     {
-        $order = \App\Models\Order::find($this->argument('order_id'));
+        $order = Order::find($this->argument('order_id'));
         if (!$order) {
             $this->error('Order not found');
             return;

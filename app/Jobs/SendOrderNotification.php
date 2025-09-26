@@ -18,6 +18,16 @@ class SendOrderNotification implements ShouldQueue
     protected $order;
     protected $status;
 
+    public function getOrder()
+    {
+        return $this->order;
+    }
+
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
     /**
      * Create a new job instance.
      */
